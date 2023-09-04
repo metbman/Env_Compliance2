@@ -1,0 +1,11 @@
+-- Calculate compliance percentages for air quality data by location and pollutant
+CREATE VIEW IF NOT EXISTS air_quality_compliance_summary AS
+SELECT
+    location,
+    pollutant,
+    AVG(CASE WHEN compliance_status = 'Compliant' THEN 1 ELSE 0 END) * 100 AS compliance_percentage
+FROM
+    air_quality_compliance
+GROUP BY
+    location,
+    pollutant;

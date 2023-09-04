@@ -1,0 +1,11 @@
+-- Calculate compliance percentages for emission data by source and pollutant
+CREATE VIEW IF NOT EXISTS emission_compliance_summary AS
+SELECT
+    source_id,
+    pollutant,
+    AVG(CASE WHEN compliance_status = 'Compliant' THEN 1 ELSE 0 END) * 100 AS compliance_percentage
+FROM
+    emission_compliance
+GROUP BY
+    source_id,
+    pollutant;

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="C:/Users/metrbmanmax/Documents/resume/projects/environmental_compliance.db" readonly="0" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><main_tabs open="structure browser pragmas query" current="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="1872"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="4,27:mainemission_compliance_summary"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="air_quality" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="76"/><column index="2" value="73"/><column index="3" value="66"/><column index="4" value="137"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="air_quality_compliance" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths/><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="air_quality_compliance_summary" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths/><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="emission_compliance" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="76"/><column index="2" value="71"/><column index="3" value="66"/><column index="4" value="116"/><column index="5" value="111"/><column index="6" value="129"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="emission_compliance_summary" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths/><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table><table schema="main" name="regulatory_standards" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk="_rowid_"><sort/><column_widths><column index="1" value="66"/><column index="2" value="67"/></column_widths><filter_values/><conditional_formats/><row_id_formats/><display_formats/><hidden_columns/><plot_y_axes/><global_filter/></table></browse_table_settings></tab_browse><tab_sql><sql name="SQL 1">-- Calculate compliance percentages for air quality data
+CREATE VIEW air_quality_compliance AS
+SELECT
+    a.timestamp,
+    a.location,
+    a.pollutant,
+    a.concentration,
+    r.standard AS regulatory_standard,
+    CASE
+        WHEN a.concentration &lt;= r.standard THEN 'Compliant'
+        ELSE 'Non-Compliant'
+    END AS compliance_status
+FROM
+    air_quality a
+JOIN
+    regulatory_standards r
+ON
+    a.pollutant = r.pollutant;
+
+-- Calculate compliance percentages for emissions data
+CREATE VIEW emission_compliance AS
+SELECT
+    e.timestamp,
+    e.source_id,
+    e.pollutant,
+    e.emissions,
+    r.standard AS regulatory_limit,
+    CASE
+        WHEN e.emissions &lt;= r.standard THEN 'Compliant'
+        ELSE 'Non-Compliant'
+    END AS compliance_status
+FROM
+    emission_records e
+JOIN
+    regulatory_standards r
+ON
+    e.pollutant = r.pollutant;
+
+	/*
+	We create two views: air_quality_compliance and emission_compliance. These views calculate compliance for air quality data and emissions data, respectively.
+
+In the air_quality_compliance view, we join the air_quality table with the regulatory_standards table on the pollutant column to retrieve the regulatory standard for each pollutant. We then use a CASE statement to determine compliance status based on whether the concentration is less than or equal to the regulatory standard.
+
+Similarly, in the emission_compliance view, we join the emission_records table with the regulatory_standards table to retrieve the regulatory limit for each pollutant. We use a CASE statement to determine compliance status based on whether emissions are less than or equal to the regulatory limit.
+	
+	
+	
+	/*
+	</sql><sql name="SQL 3">-- Calculate compliance percentages for air quality data by location and pollutant
+CREATE VIEW IF NOT EXISTS air_quality_compliance_summary AS
+SELECT
+    location,
+    pollutant,
+    AVG(CASE WHEN compliance_status = 'Compliant' THEN 1 ELSE 0 END) * 100 AS compliance_percentage
+FROM
+    air_quality_compliance
+GROUP BY
+    location,
+    pollutant;
+</sql><sql name="SQL 4">-- Calculate compliance percentages for emission data by source and pollutant
+CREATE VIEW IF NOT EXISTS emission_compliance_summary AS
+SELECT
+    source_id,
+    pollutant,
+    AVG(CASE WHEN compliance_status = 'Compliant' THEN 1 ELSE 0 END) * 100 AS compliance_percentage
+FROM
+    emission_compliance
+GROUP BY
+    source_id,
+    pollutant;
+</sql><current_tab id="2"/></tab_sql></sqlb_project>
